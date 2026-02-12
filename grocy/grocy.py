@@ -1,4 +1,5 @@
 import logging
+import os
 from functools import cached_property
 
 from .grocy_api_client import DEFAULT_PORT_NUMBER, GrocyApiClient
@@ -28,7 +29,9 @@ class Grocy:
 
     Args:
         base_url: Grocy server URL (e.g. ``"https://grocy.example.com"``).
+            If not provided, reads from ``GROCY_BASE_URL``.
         api_key: API key for authentication. Use ``"demo_mode"`` for the demo server.
+            If not provided, reads from ``GROCY_API_KEY``.
         port: Server port number.
         path: Optional URL path prefix (e.g. ``"grocy"`` for ``/grocy/api/``).
         verify_ssl: Whether to verify SSL certificates.
@@ -37,15 +40,28 @@ class Grocy:
 
     def __init__(
         self,
-        base_url,
-        api_key,
+        base_url: str | None = None,
+        api_key: str | None = None,
         port: int = DEFAULT_PORT_NUMBER,
         path: str | None = None,
         verify_ssl=True,
         debug=False,
     ):
+        resolved_base_url = base_url or os.getenv("GROCY_BASE_URL")
+        resolved_api_key = api_key or os.getenv("GROCY_API_KEY")
+
+        if not resolved_base_url:
+            raise ValueError(
+                "Grocy base URL is required. Pass base_url or set GROCY_BASE_URL."
+            )
+
+        if not resolved_api_key:
+            raise ValueError(
+                "Grocy API key is required. Pass api_key or set GROCY_API_KEY."
+            )
+
         self._api_client = GrocyApiClient(
-            base_url, api_key, port, path, verify_ssl, debug
+            resolved_base_url, resolved_api_key, port, path, verify_ssl, debug
         )
 
         if debug:

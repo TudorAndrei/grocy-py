@@ -30,6 +30,19 @@ grocy = Grocy(
 )
 ```
 
+You can also configure credentials through environment variables:
+
+```bash
+export GROCY_BASE_URL="https://your-grocy-instance.com"
+export GROCY_API_KEY="YOUR_API_KEY"
+```
+
+```python
+from grocy import Grocy
+
+grocy = Grocy()
+```
+
 The `Grocy` class constructs the API URL as `{base_url}:{port}/api/` (or `{base_url}:{port}/{path}/api/` when a path is provided).
 
 ## Local Development with Docker

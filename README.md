@@ -18,10 +18,33 @@ from grocy import Grocy
 grocy = Grocy("https://example.com", "GROCY_API_KEY")
 ```
 
+Or via environment variables:
+
+```bash
+export GROCY_BASE_URL="https://example.com"
+export GROCY_API_KEY="GROCY_API_KEY"
+```
+
+```python
+from grocy import Grocy
+
+grocy = Grocy()
+```
+
 With custom port and SSL options:
 
 ```python
 grocy = Grocy("https://example.com", "GROCY_API_KEY", port=9192, verify_ssl=True)
+```
+
+## Agent Skills (skills.sh / OpenClaw)
+
+This repository includes a `skills.sh`-compatible skill definition at `skills/grocy/SKILL.md`.
+
+Install it with:
+
+```bash
+npx skills add <your-org-or-fork>/grocy-py --skill grocy
 ```
 
 Get current stock:

@@ -9,12 +9,9 @@ Use this skill when you need to interact with a Grocy instance from Python using
 
 ## Required Environment Variables
 
-Set these before running code that creates `Grocy()` without explicit credentials:
+This skill expects `GROCY_BASE_URL` and `GROCY_API_KEY` to already be configured in the environment.
 
-```bash
-export GROCY_BASE_URL="https://your-grocy-instance.com"
-export GROCY_API_KEY="YOUR_API_KEY"
-```
+Do not ask the user to set them again; just use `Grocy()`.
 
 ## Quick Start
 
@@ -37,5 +34,4 @@ for product in grocy.stock.current():
 
 ## Notes
 
-- Passing credentials directly still works: `Grocy(base_url, api_key)`.
 - `Grocy()` raises a `ValueError` if `GROCY_BASE_URL` or `GROCY_API_KEY` is missing.

@@ -12,18 +12,9 @@ pip install grocy-py
 
 ## Usage
 
-```python
-from grocy import Grocy
+Configure the connection through environment variables:
 
-grocy = Grocy("https://example.com", "GROCY_API_KEY")
-```
-
-Or via environment variables:
-
-```bash
-export GROCY_BASE_URL="https://example.com"
-export GROCY_API_KEY="GROCY_API_KEY"
-```
+`GROCY_BASE_URL` and `GROCY_API_KEY` are expected to already exist in your environment.
 
 ```python
 from grocy import Grocy
@@ -34,7 +25,7 @@ grocy = Grocy()
 With custom port and SSL options:
 
 ```python
-grocy = Grocy("https://example.com", "GROCY_API_KEY", port=9192, verify_ssl=True)
+grocy = Grocy(port=9192, verify_ssl=True)
 ```
 
 ## Agent Skills (skills.sh / OpenClaw)

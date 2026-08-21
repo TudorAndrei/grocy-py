@@ -31,6 +31,7 @@ class Product(BaseModel):
     id: int
     name: str | None = None
     product_group_id: int | None = None
+    location_id: int | None = None
     shopping_location_id: int | None = None
     available_amount: float | None = None
     amount_aggregated: float | None = None
@@ -43,6 +44,7 @@ class Product(BaseModel):
     amount_missing: float | None = None
     is_partly_in_stock: bool | None = None
     default_quantity_unit_purchase: QuantityUnit | None = None
+    picture_file_name: str | None = None
 
     @classmethod
     def from_stock_response(cls, resp) -> Product:
@@ -51,14 +53,17 @@ class Product(BaseModel):
         name = None
         product_group_id = None
         shopping_location_id = None
+        location_id = None
         if resp.product:
             name = resp.product.name
             product_group_id = resp.product.product_group_id
             shopping_location_id = resp.product.shopping_location_id
+            location_id = resp.product.location_id
         return cls(
             id=resp.product_id,
             name=name,
             product_group_id=product_group_id,
+            location_id=location_id,
             shopping_location_id=shopping_location_id,
             available_amount=resp.amount,
             amount_aggregated=resp.amount_aggregated,
@@ -92,12 +97,16 @@ class Product(BaseModel):
         name = None
         product_group_id = None
         shopping_location_id = None
+        location_id = None
+        picture_file_name = None
         product_id = 0
         if resp.product:
             product_id = resp.product.id
             name = resp.product.name
             product_group_id = resp.product.product_group_id
             shopping_location_id = resp.product.shopping_location_id
+            location_id = resp.product.location_id
+            picture_file_name = resp.product.picture_file_name
         qu = None
         if resp.default_quantity_unit_purchase:
             qu = QuantityUnit(
@@ -110,12 +119,14 @@ class Product(BaseModel):
             id=product_id,
             name=name,
             product_group_id=product_group_id,
+            location_id=location_id,
             shopping_location_id=shopping_location_id,
             available_amount=resp.stock_amount,
             best_before_date=resp.next_best_before_date,
             product_barcodes=product_barcodes,
             barcodes=barcodes,
             default_quantity_unit_purchase=qu,
+            picture_file_name=picture_file_name,
         )
 
     @classmethod
@@ -125,6 +136,7 @@ class Product(BaseModel):
             id=data.id,
             name=data.name,
             product_group_id=data.product_group_id,
+            location_id=data.location_id,
             shopping_location_id=data.shopping_location_id,
         )
 
@@ -138,15 +150,18 @@ class Product(BaseModel):
         details = api_client.get_product(self.id)
         if details:
             updated = Product.from_details_response(details)
-            # Preserve fields that the details response doesn't provide
+            # Preserve fields that the details response doesn't provide.
+            # For example, from_stock_response sets best_before_date,
+            # amount_aggregated, etc. which from_details_response does not.
             preserved = {}
-            for field in ("amount_missing", "is_partly_in_stock"):
-                current = getattr(self, field, None)
-                if current is not None:
-                    preserved[field] = current
+            for field_name in Product.model_fields:
+                current = getattr(self, field_name, None)
+                new_val = getattr(updated, field_name, None)
+                if current is not None and new_val is None:
+                    preserved[field_name] = current
             self.__dict__.update(updated.__dict__)
-            for field, value in preserved.items():
-                setattr(self, field, value)
+            for field_name, value in preserved.items():
+                setattr(self, field_name, value)
 
 
 class Group(BaseModel):

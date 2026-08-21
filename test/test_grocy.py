@@ -1,16 +1,16 @@
 import json
 from datetime import datetime
-from test.test_const import CONST_BASE_URL, CONST_PORT, CONST_SSL
 from unittest import TestCase
 from unittest.mock import mock_open, patch
 
 import pytest
 import responses
 
-from grocy.grocy import Grocy
 from grocy.data_models.product import Product
 from grocy.errors import GrocyError
+from grocy.grocy import Grocy
 from grocy.grocy_api_client import GrocyApiClient
+from test.test_const import CONST_BASE_URL, CONST_PORT, CONST_SSL
 
 
 class TestGrocy(TestCase):
@@ -40,6 +40,39 @@ class TestGrocy(TestCase):
             status=200,
         )
         self.assertEqual(len(self.grocy.shopping_list.items()), 0)
+
+    @responses.activate
+    def test_get_shopping_list_whitespace_body(self):
+        responses.add(
+            responses.GET,
+            f"{self.base_url}/objects/shopping_list",
+            body=b"   ",
+            status=200,
+        )
+        self.assertEqual(self.grocy.shopping_list.items(), [])
+
+    @responses.activate
+    def test_get_meal_plan_integer_product_qu_id(self):
+        # Grocy API returns product_qu_id as int; model must not raise a validation error
+        responses.add(
+            responses.GET,
+            f"{self.base_url}/objects/meal_plan",
+            json=[
+                {
+                    "id": 1,
+                    "day": "2026-04-09T00:00:00",
+                    "type": "product",
+                    "product_id": 2,
+                    "product_amount": 1.0,
+                    "product_qu_id": 4,
+                    "row_created_timestamp": "2026-04-09T10:00:00",
+                }
+            ],
+            status=200,
+        )
+        result = self.grocy.meal_plan.items()
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].product_id, 2)
 
     @responses.activate
     def test_clear_shopping_list_error(self):
@@ -88,23 +121,22 @@ class TestGrocy(TestCase):
 
     @responses.activate
     def test_upload_product_picture_error(self):
-        with patch("os.path.exists") as m_exist:
-            with patch("builtins.open", mock_open()):
-                m_exist.return_value = True
-                api_client = GrocyApiClient(
-                    CONST_BASE_URL, "demo_mode", port=CONST_PORT, verify_ssl=CONST_SSL
-                )
-                responses.add(
-                    responses.PUT,
-                    f"{self.base_url}/files/productpictures/MS5qcGc=",
-                    status=400,
-                )
-                self.assertRaises(
-                    GrocyError,
-                    api_client.upload_product_picture,
-                    1,
-                    "/somepath/pic.jpg",
-                )
+        with patch("os.path.exists") as m_exist, patch("builtins.open", mock_open()):
+            m_exist.return_value = True
+            api_client = GrocyApiClient(
+                CONST_BASE_URL, "demo_mode", port=CONST_PORT, verify_ssl=CONST_SSL
+            )
+            responses.add(
+                responses.PUT,
+                f"{self.base_url}/files/productpictures/MS5qcGc=",
+                status=400,
+            )
+            self.assertRaises(
+                GrocyError,
+                api_client.upload_product_picture,
+                1,
+                "/somepath/pic.jpg",
+            )
 
     @responses.activate
     def test_update_product_pic_error(self):

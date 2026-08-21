@@ -8,7 +8,6 @@ tasks:
     desc: Install project with development tooling
     cmds:
       - uv sync --dev --frozen
-      - uv pip install -e .
       - uv run pre-commit install
 
   deps:
@@ -31,12 +30,12 @@ tasks:
   docs:
     desc: Build documentation locally
     cmds:
-      - uv run mkdocs build
+      - uv run --group docs mkdocs build
 
   docs:serve:
     desc: Serve documentation locally with live reload
     cmds:
-      - uv run mkdocs serve
+      - uv run --group docs mkdocs serve
 
   lint:
     desc: Lint with Ruff
@@ -57,7 +56,7 @@ tasks:
       - |
         set -euo pipefail
         package_name=$(sed -n 's/^name\s*=\s*"\([^"]*\)".*/\1/p' pyproject.toml)
-        package_version=$(sed -n 's/^version\s*=\s*"\([^"]*\)".*/\1/p' pyproject.toml)
+        package_version=$(git describe --tags --abbrev=0 2>/dev/null)
         if [ -z "$package_name" ] || [ -z "$package_version" ]; then
           echo "Failed to read project name or version from pyproject.toml" >&2
           exit 1
